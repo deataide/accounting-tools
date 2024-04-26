@@ -15,7 +15,6 @@ export interface GetByEmailInput {
 export interface CreateAccountOutput{
   id: string
   name: string
-
 }
 
 export interface GetByIdInput{
@@ -40,21 +39,36 @@ export interface FindAllOutput {
   approved: boolean
 }
 
-export abstract class AccountRepository {
-  abstract createAccount(i: CreateAccount): Promise<User | null>;
+export interface UpdateUserInput {
+  id: string
+  name?: string
+  email?: string
+  cnpj?: string
+  cpf?: string
+}
 
-  abstract getByEmail(i: GetByEmailInput): Promise<User | null>;
+
+export abstract class AccountRepository {
+  abstract create(i: CreateAccount): Promise<User | null>;
+
+  abstract getAll(): Promise<User[] | null>
 
   abstract getById(i: GetByIdInput): Promise<User | null>;
 
+  abstract getByEmail(i: GetByEmailInput): Promise<User | null>;
+
   abstract getToApprove(): Promise<User[] | null>
 
-  abstract getAll(): Promise<User[] | null>
+  abstract delete({id}): Promise<Boolean> 
+
+  abstract update(i:User): Promise<User | null>
 
 }
 
 export abstract class AccountUseCase {
   abstract create(i: CreateAccount): Promise<CreateAccountOutput| null>;
-  abstract findAllToAprove(i: AdminUser):Promise<UsersToAproveOutput[] | null>
-  abstract findAll(i:AdminUser):Promise<FindAllOutput[] | null>
+  abstract update(i:UpdateUserInput): Promise<User>
+  abstract delete({id}): Promise<Boolean>
+  abstract findAll():Promise<FindAllOutput[] | null>
+  abstract findAllToAprove():Promise<UsersToAproveOutput[] | null>
 }

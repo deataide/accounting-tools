@@ -14,7 +14,7 @@ export const SIDENAV_ITEMS: SideNavItem[] = [
     icon: <Icon icon="lucide:folder" width="24" height="24" />,
     submenu: true,
     subMenuItems: [
-      { title: 'All', path: '/fiscal' },
+      { title: 'All', path: '/clients' },
       { title: 'Antecipação', path: '/fiscal/antecipacao' },
 
     ],

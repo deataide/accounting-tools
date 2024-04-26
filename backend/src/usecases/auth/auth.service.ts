@@ -39,7 +39,15 @@ export class AuthService extends AuthUseCase {
         HttpStatus.BAD_REQUEST,
       );
 
-    const payload = this.jwtInstance.genAccess({ accountId: user.id });
+    const token = this.jwtInstance.genAccess({ accountId: user.id });
+    
+    const role = user.role
+
+    const payload = {
+      token: token.accessToken,
+      expiresAt: token.expiresAt,
+      role
+    }
 
     return {
       payload: payload,

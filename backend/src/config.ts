@@ -1,4 +1,5 @@
 import type { ConfigService } from '@nestjs/config';
+import { ValidatorOptions, ValidationError } from 'class-validator';
 import { Transform, plainToInstance } from 'class-transformer';
 import {
 	IsIn,
@@ -37,3 +38,9 @@ export function validateConfig(config: Record<string, unknown>) {
 	}
 	return validatedConfig;
 }
+
+export interface ValidationPipeOptions extends ValidatorOptions {
+	transform?: boolean;
+	disableErrorMessages?: boolean;
+	exceptionFactory?: (errors: ValidationError[]) => any;
+  }

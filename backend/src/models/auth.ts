@@ -7,7 +7,11 @@ password: string
 }
 
 export interface LoginOutput{
-    payload: Object
+    payload: {
+        role: string
+        token: string
+        expiresAt: string
+    }
 }
 
 export interface GetByEmailInput{}

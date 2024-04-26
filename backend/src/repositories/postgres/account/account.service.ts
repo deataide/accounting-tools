@@ -6,6 +6,7 @@ import {
   CreateAccount,
   GetByEmailInput,
   GetByIdInput,
+  UpdateUserInput,
 } from 'src/models/account';
 
 @Injectable()
@@ -17,7 +18,48 @@ export class AccountRepositoryService extends AccountRepository {
     super();
   }
 
-  createAccount(i: CreateAccount): Promise<User> {
+  async update(i: UpdateUserInput): Promise<User | null> {
+   
+      const user = await this.accountRepository.findFirst({
+        where: {
+          id: i.id
+        },
+      });
+
+      if (!user) {
+        return null;
+      }
+
+      const updatedUser = await this.accountRepository.update({
+        where: {
+          id: user.id
+        },
+        data: {
+          name: i.name || user.name,
+          email: i.email || user.email,
+          cpf: i.cpf || user.cpf,
+          cnpj: i.cnpj || user.cnpj
+        }
+      });
+
+      return updatedUser
+    
+  }
+
+  async delete(i:User): Promise<Boolean>{
+    const userDeleted = this.accountRepository.delete({where:{
+      id: i.id
+    }})
+
+    if(!userDeleted){
+      return true
+    } else{
+      return false
+    }
+  }
+
+
+  create(i: CreateAccount): Promise<User> {
 
     return this.accountRepository.create({
       data: {

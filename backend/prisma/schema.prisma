@@ -13,42 +13,59 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// **********************************
+//
+// User
+//
+// **********************************
+
+enum RoleEnum {
+  ADMIN
+  USER
+
+  @@map("role_enum")
+}
+
 model User {
-  id           String   @id @default(uuid())
-  name         String
-  email        String   @unique
-  password     String
-  cnpj         String?
-  cpf          String?
+  id       String  @id @default(uuid())
+  name     String
+  email    String  @unique
+  password String
+  cnpj     String?
+  cpf      String?
+
   clients      Client[]
   createdAt    DateTime @default(now())
-  refreshToken String? 
-  approved     Boolean @default(false)
-  admin        Boolean @default(false)
+  refreshToken String?
+  approved     Boolean  @default(false)
+  role         RoleEnum @default(USER)
 
   @@map("users")
 }
 
+// **********************************
+//
+// Client
+//
+// **********************************
+
+enum TaxRegimeEnum {
+  microeemprendedor_individual
+  simples_nacional
+  lucro_presumido
+  lucro_real
+}
+
 model Client {
-  id                Int            @id @default(autoincrement())
+  id                String         @id @default(uuid())
   name              String
-  cnpj              String?
+  cnpj              String
   cpf               String?
   stateRegistration String?
-  antecipations     Antecipation[]
+  taxRegime         TaxRegimeEnum?
 
   master   User   @relation(fields: [masterId], references: [id])
   masterId String
 
   @@map("clients")
-}
-
-model Antecipation {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  pdfPath   String
-  client    Client   @relation(fields: [clientId], references: [id])
-  clientId  Int
-
-  @@map("antecipations")
 }

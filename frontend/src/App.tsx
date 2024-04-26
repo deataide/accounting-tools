@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import SignIn from "./pages/SignIn";
 import Layout from "./components/Layout";
-import Sidebar from "./components/Header/Header";
 import { AuthProvider } from "./contexts/AuthProvider";
 import ProtectedLayout from "./components/ProtectedLayout";
 import Dashboard from "./components/Dashboard/Dashboard";

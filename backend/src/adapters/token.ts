@@ -5,11 +5,6 @@ export interface GenAccessInput {
 export interface GenAccessOutput {
   accessToken: string;
   expiresAt: string;
-  accountId: string
-}
-
-export interface ValidateAccessInput {
-  accessToken: string;
 }
 
 export interface TokenPayload {
@@ -19,5 +14,5 @@ export interface TokenPayload {
 
 export abstract class TokenAdapter {
   abstract genAccess(i: GenAccessInput): GenAccessOutput;
-  abstract validateAccess(i: ValidateAccessInput): true | false;
+  abstract validateAccess(i: string): TokenPayload | null;
 }

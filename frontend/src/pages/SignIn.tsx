@@ -19,7 +19,7 @@ export default function SignIn() {
     try {
       const isAValidEmail = emailRegex.test(data.email)
       if(!isAValidEmail) return console.error('Type a valid e-mail')
-      await auth.authenticate(data.email, data.password);
+       await auth.authenticate(data.email, data.password);
       navigate('/dashboard', { replace: true });
     } catch (error) {
       console.log(error);

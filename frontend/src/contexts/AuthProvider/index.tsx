@@ -8,7 +8,6 @@ export const AuthProvider = ({children}:IAuthProvider)=>{
 const [user, setUser] = useState<IUser | null>()
 
 
-
 useEffect(() => {
  const user = getUserLocalStorage()
  if(user){
@@ -22,17 +21,20 @@ useEffect(() => {
 async function authenticate(email: string, password: string){
 const response = await LoginRequest(email, password)
 
+
+
 if(!response){
     console.log('Error to authenticate')
 }
 
-const payload = {token:response.payload.accessToken, id: response.payload.accountId}
+const payload = { role: response.role, hasAuthenticatedUser: response.hasAuthenticatedUser}
 
 setUser(payload),
 setUserLocalStorage(payload)
 
 }
 function logout(){
+
     setUser(null)
     setUserLocalStorage(null)
 }

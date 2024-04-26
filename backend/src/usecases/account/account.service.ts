@@ -1,82 +1,87 @@
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { User } from '@prisma/client';
+import { BcryptAdapterService } from 'src/adapters/implementations/bcrypt/bcrypt.service';
+
 import {
-	HttpException,
-	HttpStatus,
-	Inject,
-	Injectable,
-
-} from "@nestjs/common";
-import { BcryptAdapterService } from "src/adapters/implementations/bcrypt/bcrypt.service";
-
-import { AccountUseCase, AdminUser, CreateAccount, CreateAccountOutput, FindAllOutput, UsersToAproveOutput } from "src/models/account";
+  AccountUseCase,
+  CreateAccount,
+  CreateAccountOutput,
+  FindAllOutput,
+  UpdateUserInput,
+  UsersToAproveOutput,
+} from 'src/models/account';
 import { AccountRepositoryService } from 'src/repositories/postgres/account/account.service';
 
 @Injectable()
 export class AccountService extends AccountUseCase {
+  constructor(
+    @Inject(AccountRepositoryService)
+    private readonly accountRepository: AccountRepositoryService,
+    @Inject(BcryptAdapterService)
+    private readonly bcrypt: BcryptAdapterService,
+  ) {
+    super();
+  }
 
-	constructor(
-		@Inject(AccountRepositoryService)
-		private readonly accountRepository: AccountRepositoryService,
-		@Inject(BcryptAdapterService)
-		private readonly bcrypt: BcryptAdapterService,
-	) {
-		super()
-	}
+  async create(i: CreateAccount): Promise<CreateAccountOutput> {
+    const hashedPassword = await this.bcrypt.encrypt({ password: i.password });
 
-	async create(i: CreateAccount): Promise<CreateAccountOutput> {
+    const userAlreadyExists = await this.accountRepository.getByEmail({
+      email: i.email,
+    });
 
-		const hashedPassword = await this.bcrypt.encrypt({ password: i.password })
+    if (userAlreadyExists) {
+      throw new HttpException(
+        'O e-mail já está sendo utilizado',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
-		const userAlreadyExists = await this.accountRepository.getByEmail({ email: i.email })
+    const userData = {
+      name: i.name,
+      email: i.email,
+      password: hashedPassword,
+      cnpj: i.cnpj || null,
+      cpf: i.cpf || null,
+      admin: false,
+    };
 
-		if (userAlreadyExists) {
-			throw new HttpException("O e-mail já está sendo utilizado", HttpStatus.BAD_REQUEST)
-		}
+    const newUser = await this.accountRepository.create(userData);
 
-		const userData = {
-			name: i.name,
-			email: i.email,
-			password: hashedPassword,
-			cnpj: i.cnpj || null,
-			cpf: i.cpf || null,
-			admin: false
-		}
+    return {
+      id: newUser.id,
+      name: newUser.id,
+    };
+  }
 
-		const newUser = await this.accountRepository.createAccount(userData)
+  async update(i: UpdateUserInput): Promise<User | null> {
+    if (!i) {
+      throw new HttpException('Parâmetros inválidos', HttpStatus.BAD_REQUEST);
+    }
 
-		return {
-			id: newUser.id,
-			name: newUser.id,
-		}
-	}
+    const updatedUser = this.accountRepository.update(i);
+    return updatedUser;
+  }
 
+  async delete({id}): Promise<Boolean> {
+    this.accountRepository.delete(id);
 
-	//Just to Admin
-	async findAllToAprove(i: AdminUser): Promise<UsersToAproveOutput[]> {
+    const findUser = this.accountRepository.getById(id);
 
-		const adminUser = await this.accountRepository.getById({ id: i.id })
+    if (!findUser) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 
-		if (adminUser.approved == true) {
-			const usersToAprove = await this.accountRepository.getToApprove()
+  async findAllToAprove(): Promise<UsersToAproveOutput[]> {
+    const usersToAprove = await this.accountRepository.getToApprove();
+    return usersToAprove;
+  }
 
-			return usersToAprove
-
-		} else {
-			return null
-		}
-
-	}
-	
-	//Just to Admin
-	async findAll(i: AdminUser): Promise<FindAllOutput[]> {
-		const adminUser = await this.accountRepository.getById({ id: i.id })
-		
-		if (adminUser.approved == true) {
-			const users = await this.accountRepository.getAll()
-			return users
-		}else{
-			return null
-		}
-		
-	}
-
+  async findAll(): Promise<FindAllOutput[]> {
+    const users = await this.accountRepository.getAll();
+    return users;
+  }
 }

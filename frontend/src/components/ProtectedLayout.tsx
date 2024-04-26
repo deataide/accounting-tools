@@ -9,7 +9,7 @@ export default function ProtectedLayout({children}: LayoutProps) {
 
     const auth = useAuth()
 
-    if(!auth.id){
+    if(!auth.hasAuthenticatedUser){
         return <h1 className='flex align-middle justify-center'>You don't have acess</h1>
     }
 
