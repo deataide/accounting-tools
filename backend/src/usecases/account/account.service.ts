@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { $Enums, User } from '@prisma/client';
 import { BcryptAdapterService } from 'src/adapters/implementations/bcrypt/bcrypt.service';
 
 import {
@@ -8,12 +8,13 @@ import {
   CreateAccountOutput,
   FindAllOutput,
   UpdateUserInput,
-  UsersToAproveOutput,
+  UsersToApproveOutput,
 } from 'src/models/account';
 import { AccountRepositoryService } from 'src/repositories/postgres/account/account.service';
 
 @Injectable()
 export class AccountService extends AccountUseCase {
+
   constructor(
     @Inject(AccountRepositoryService)
     private readonly accountRepository: AccountRepositoryService,
@@ -21,6 +22,20 @@ export class AccountService extends AccountUseCase {
     private readonly bcrypt: BcryptAdapterService,
   ) {
     super();
+  }
+
+  async findAllNotAproved(): Promise<UsersToApproveOutput[]> {
+    const users = await this.accountRepository.getToApprove()
+
+    return users
+  }
+  async approveUser(id: string): Promise<User | null> {
+   const user = await this.accountRepository.approve(id)
+   return user
+  }
+  async disapproveUser(id: string): Promise<User | null> {
+    const user = await this.accountRepository.disapprove(id)
+    return
   }
 
   async create(i: CreateAccount): Promise<CreateAccountOutput> {
@@ -50,7 +65,7 @@ export class AccountService extends AccountUseCase {
 
     return {
       id: newUser.id,
-      name: newUser.id,
+      name: newUser.name,
     };
   }
 
@@ -63,19 +78,19 @@ export class AccountService extends AccountUseCase {
     return updatedUser;
   }
 
-  async delete({id}): Promise<Boolean> {
+  async delete(id:string): Promise<void> {
     this.accountRepository.delete(id);
 
-    const findUser = this.accountRepository.getById(id);
+    const findUser = this.accountRepository.getById({id});
 
     if (!findUser) {
-      return true;
+      return;
     } else {
-      return false;
+      return;
     }
   }
 
-  async findAllToAprove(): Promise<UsersToAproveOutput[]> {
+  async findAllToAprove(): Promise<UsersToApproveOutput[]> {
     const usersToAprove = await this.accountRepository.getToApprove();
     return usersToAprove;
   }

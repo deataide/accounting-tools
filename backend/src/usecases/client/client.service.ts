@@ -1,4 +1,3 @@
-import { UserId } from './../../delivery/decorators/token.decorator';
 import { AccountRepository } from 'src/models/account';
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 
@@ -6,8 +5,8 @@ import {
   ClientRepository,
   ClientUseCase,
   CreateClientInput,
-  CreateClientOutput,
   UpdateClientInput,
+  UserIdAndClientId,
 } from 'src/models/client';
 import { AccountRepositoryService } from 'src/repositories/postgres/account/account.service';
 import { ClientRepositoryService } from 'src/repositories/postgres/client/client.service';
@@ -24,14 +23,31 @@ export class ClientService extends ClientUseCase {
     super();
   }
 
-  async create(i: CreateClientInput): Promise<CreateClientOutput> {
+  async getById(i: UserIdAndClientId): Promise<Client | null> {
+    const client = await this.clientRepository.getById(i);
+
+    if (!client) {
+      throw new HttpException('Client doesnt exists', HttpStatus.BAD_REQUEST);
+    }
+
+    return client;
+  }
+  update(i: UpdateClientInput): Promise<Client | null> {
+    throw new Error('Method not implemented.');
+  }
+  async delete(i: UserIdAndClientId): Promise<void> {
+    await this.clientRepository.delete(i);
+    return null;
+  }
+
+  async create(i: CreateClientInput): Promise<Client | null> {
     const userIdExists = this.accountRepository.getById({ id: i.userId });
 
     if (!userIdExists) {
       throw new HttpException('Internal error', HttpStatus.BAD_REQUEST);
     }
 
-    const newClient = await this.clientRepository.createClient({
+    const newClient = await this.clientRepository.create({
       name: i.name,
       cnpj: i.cnpj,
       cpf: i.cpf,
@@ -39,18 +55,11 @@ export class ClientService extends ClientUseCase {
       userId: i.userId,
     });
 
-    return {
-      id: newClient.id,
-      name: newClient.name,
-      cnpj: newClient.cnpj || null,
-    };
+    return newClient;
   }
-  async getAll({ userId }): Promise<Client[] | null> {
-    const clients = await this.clientRepository.getAll({ userId });
+  async getAll(userId: string): Promise<Client[] | null> {
+    const clients = await this.clientRepository.getAll(userId);
 
     return clients;
   }
-
-
-
 }

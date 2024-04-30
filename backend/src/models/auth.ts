@@ -1,30 +1,26 @@
-import { User } from "@prisma/client"
+import { User } from "@prisma/client";
 
-
-export interface LoginInput{
-email: string
-password: string
+export interface LoginInput {
+  email: string;
+  password: string;
 }
 
-export interface LoginOutput{
-    payload: {
-        role: string
-        token: string
-        expiresAt: string
-    }
+export interface LoginOutput {
+  payload: {
+    role: string;
+    token: string;
+    expiresAt: string;
+    hasAuthenticatedUser: boolean;
+  };
 }
 
-export interface GetByEmailInput{}
-
-export abstract class AuthRepository {
-abstract getByEmail(i:GetByEmailInput): Promise<User | null>
+export interface GetByEmailInput {
+  email: string;
 }
-
 
 export abstract class AuthUseCase {
-
-    abstract login(i:LoginInput): Promise<LoginOutput>
-
+  abstract login(i: LoginInput): Promise<LoginOutput>;
 }
-
-
+export abstract class AuthRepository {
+  abstract createAccount(i: LoginInput): Promise<User | null>;
+}

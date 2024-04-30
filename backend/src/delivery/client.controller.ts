@@ -29,6 +29,11 @@ export class ClientController {
 
   @Get()
   getAll(@UserId() userId: string) {
-    return this.clientService.getAll({ userId });
+    return this.clientService.getAll(userId);
+  }
+
+  @Get(':id')
+  getById(@UserId() userId: string, @Param('id') clientId: string) {
+    return this.clientService.getById({ userId, clientId });
   }
 }

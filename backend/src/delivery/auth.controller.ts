@@ -14,22 +14,21 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<Object> {
     const payload = (await this.authService.login(userData)) as LoginOutput;
-    const token = payload.payload.token;
 
-    // Definir o token JWT como um cookie HTTPOnly
+    const { expiresAt, hasAuthenticatedUser, role, token } = payload.payload;
+
     res.cookie('access_token', token, {
       httpOnly: true,
       expires: new Date(Date.now() + 1 * 24 * 60 * 1000),
       secure: true,
     });
 
-    return { role: payload.payload.role, hasAuthenticatedUser: true };
+    return { role: role, hasAuthenticatedUser: hasAuthenticatedUser };
   }
 
   @Post('/logout')
   async logout(@Res({ passthrough: true }) res: Response) {
     res.clearCookie('access_token');
-
     return { role: null, hasAuthenticatedUser: false };
   }
 }

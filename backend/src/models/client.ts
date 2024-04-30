@@ -1,47 +1,47 @@
-import { Client, TaxRegimeEnum, User } from '@prisma/client';
+import { Client, TaxRegimeEnum } from '@prisma/client';
 
 export interface CreateClientInput {
-userId: string
+  userId: string;
   name: string;
   cnpj: string | null;
   cpf: string | null;
   stateRegistration: string | null;
 }
 
-export interface CreateClientOutput{
-    id: string;
-    name: string
-    cnpj: string
-}
-
-export interface UpdateClientInput{
-    userId: string
-    id: string
+export interface UpdateClientInput {
+  userId: string;
+  id: string;
   name: string;
   cnpj: string | null;
   cpf: string | null;
-  stateRegistration: TaxRegimeEnum | null
+  stateRegistration: TaxRegimeEnum | null;
 }
 
-export interface UserAndClientId {
-  userid: string
-  clientId: string
+export interface ClientOutput {
+  id: string;
+  name: string;
+  cnpj: string | null;
+  cpf: string | null;
+  stateRegistration: TaxRegimeEnum | null;
 }
 
-
+export interface UserIdAndClientId {
+  userId: string;
+  clientId: string;
+}
 
 export abstract class ClientRepository {
-    abstract createClient(i: CreateClientInput):Promise<Client | null>
-    abstract getAll({userId}):Promise<Client[] | null>
-      abstract getById(i: UserAndClientId):Promise<Client  | null>
-    abstract update(i: UpdateClientInput):Promise<Client | null>
-    abstract delete(i: UserAndClientId)
+  abstract create(i: CreateClientInput): Promise<Client | null>;
+  abstract getAll(userId: string): Promise<Client[] | null>;
+  abstract getById(i: UserIdAndClientId): Promise<Client | null>;
+  abstract update(i: UpdateClientInput): Promise<Client | null>;
+  abstract delete(i: UserIdAndClientId): Promise<void>;
 }
 
-export abstract class ClientUseCase{
-    abstract create(i:CreateClientInput):Promise<CreateClientOutput | null>
-    abstract getAll(i: UserAndClientId):Promise<Client[] | null>
-      abstract getById({clientId}):Promise<Client | null>
-    abstract update(i: UpdateClientInput):Promise<Client | null>
-    abstract delete(i: UserAndClientId)
+export abstract class ClientUseCase {
+  abstract create(i: CreateClientInput): Promise<Client | null>;
+  abstract getAll(userId: string): Promise<Client[] | null>;
+  abstract getById(i: UserIdAndClientId): Promise<Client | null>;
+  abstract update(i: UpdateClientInput): Promise<Client | null>;
+  abstract delete(i: UserIdAndClientId): Promise<void>;
 }

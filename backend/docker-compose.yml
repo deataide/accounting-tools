@@ -1,0 +1,64 @@
+version: "3.8"
+
+services:
+  localstack:
+    # https://medium.com/@muthomititus/a-guide-to-localstack-with-docker-compose-e1487e3a776f
+    image: localstack/localstack:1.0.4
+    container_name: accounting-localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3:4566
+      - HOSTNAME=localstack
+      - HOSTNAME_EXTERNAL=localstack
+      - DEFAULT_REGION=us-east-1
+    volumes:
+      - "./localstack/buckets.sh:/docker-entrypoint-initaws.d/buckets.sh"
+    networks:
+      - accounting-network
+
+  postgres:
+    image: "postgres:latest"
+    container_name: accounting-postgres
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: database
+    volumes:
+      - "postgres:/var/lib/postgresql/data/"
+    networks:
+      - accounting-network
+
+  api:
+    build:
+      context: "."
+      dockerfile: Dockerfile.dev
+    image: accounting-api
+    container_name: accounting-api
+    command: npm run start:docker
+    depends_on:
+      - postgres
+      - localstack
+    ports:
+      - 3000:3000
+    env_file:
+      - .env
+    volumes:
+      - ./:/app
+      - /node_modules
+    networks:
+      - accounting-network
+
+volumes:
+  postgres:
+
+networks:
+  accounting-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+          ip_range: 172.28.5.0/24
+          gateway: 172.28.5.254

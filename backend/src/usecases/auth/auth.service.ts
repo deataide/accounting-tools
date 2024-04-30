@@ -7,7 +7,6 @@ import { AccountRepositoryService } from 'src/repositories/postgres/account/acco
 
 @Injectable()
 export class AuthService extends AuthUseCase {
-  
   constructor(
     @Inject(AccountRepositoryService)
     private readonly accountRepository: AccountRepositoryService,
@@ -22,7 +21,7 @@ export class AuthService extends AuthUseCase {
   async login(i: LoginInput): Promise<LoginOutput> {
     const user = await this.accountRepository.getByEmail({ email: i.email });
 
-    if (!i.email && !i.password && !user)
+    if (!i.email || !i.password || !user)
       throw new HttpException(
         'E-mail ou senha incorretos',
         HttpStatus.BAD_REQUEST,
@@ -39,15 +38,16 @@ export class AuthService extends AuthUseCase {
         HttpStatus.BAD_REQUEST,
       );
 
-    const token = this.jwtInstance.genAccess({ accountId: user.id });
-    
-    const role = user.role
+    const { accessToken, expiresAt } = this.jwtInstance.genAccess({
+      accountId: user.id,
+    });
 
     const payload = {
-      token: token.accessToken,
-      expiresAt: token.expiresAt,
-      role
-    }
+      token: accessToken,
+      expiresAt: expiresAt,
+      role: user.role,
+      hasAuthenticatedUser: true,
+    };
 
     return {
       payload: payload,
