@@ -9,10 +9,11 @@ import { JwtAdapterModule } from "src/adapters/implementations/jwt/jwt.module";
 import { BcryptAdapterModule } from "src/adapters/implementations/bcrypt/bcrypt.module";
 import { BcryptAdapterService } from "src/adapters/implementations/bcrypt/bcrypt.service";
 
+
 @Module({
 	controllers: [AuthController],
 	imports: [AccountRepositoryModule, JwtAdapterModule, BcryptAdapterModule],
-	providers: [AuthService, JwtAdapterService, BcryptAdapterService],
+	providers: [AuthService, JwtAdapterService, BcryptAdapterService,],
 	exports: [AuthService, JwtAdapterService, BcryptAdapterService],
 })
 export class AuthModule {}

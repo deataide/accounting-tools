@@ -1,11 +1,10 @@
 import { InjectRepository, Repository } from '../..';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { RoleEnum, User } from '@prisma/client';
 import {
   AccountRepository,
   CreateAccount,
   GetByEmailInput,
-  GetByIdInput,
   UpdateUserInput,
 } from 'src/models/account';
 
@@ -18,21 +17,21 @@ export class AccountRepositoryService extends AccountRepository {
     super();
   }
 
-  getNotAproved(): Promise<User[]> {
+  getGuests(): Promise<User[] | null> {
     return this.accountRepository.findMany({
       where: {
-        approved: false,
+        role: RoleEnum.GUEST,
       },
     });
   }
 
-  async approve(id: string): Promise<User | null> {
+  async guestToUser(id: string): Promise<User | null> {
     const approvedUser = await this.accountRepository.update({
       where: {
         id: id,
       },
       data: {
-        approved: true,
+        role: RoleEnum.USER,
       },
     });
 
@@ -43,13 +42,13 @@ export class AccountRepositoryService extends AccountRepository {
     return approvedUser;
   }
 
-  async disapprove(id: string): Promise<void> {
+  async userToGuest(id: string): Promise<void> {
     await this.accountRepository.update({
       where: {
         id: id,
       },
       data: {
-        approved: false,
+        role: RoleEnum.GUEST,
       },
     });
   }
@@ -76,7 +75,6 @@ export class AccountRepositoryService extends AccountRepository {
         cnpj: i.cnpj || user.cnpj,
       },
     });
-
     return updatedUser;
   }
 
@@ -88,6 +86,7 @@ export class AccountRepositoryService extends AccountRepository {
         password: i.password,
         cnpj: i.cnpj,
         cpf: i.cpf,
+        role: RoleEnum.GUEST,
       },
     });
   }
@@ -100,7 +99,7 @@ export class AccountRepositoryService extends AccountRepository {
     });
   }
 
-  getById({ id }: GetByIdInput): Promise<User | null> {
+  getById(id: string): Promise<User | null> {
     return this.accountRepository.findUnique({
       where: {
         id: id,
@@ -119,22 +118,16 @@ export class AccountRepositoryService extends AccountRepository {
       throw new NotFoundException(`Usuário com ID ${id} não encontrado`);
     }
 
-    return
+    return;
   }
 
-  getAll(): Promise<User[]> {
-    return this.accountRepository.findMany({
+  async getAll(): Promise<User[]> {
+    const users = await this.accountRepository.findMany({
       where: {
-        approved: true,
+        role: RoleEnum.USER,
       },
     });
-  }
 
-  getToApprove(): Promise<User[]> {
-    return this.accountRepository.findMany({
-      where: {
-        approved: false,
-      },
-    });
+    return users;
   }
 }

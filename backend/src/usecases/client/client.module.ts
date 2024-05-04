@@ -8,11 +8,12 @@ import { BcryptAdapterModule } from "src/adapters/implementations/bcrypt/bcrypt.
 import { BcryptAdapterService } from "src/adapters/implementations/bcrypt/bcrypt.service";
 import { JwtAdapterService } from "src/adapters/implementations/jwt/jwt.service";
 import { JwtAdapterModule } from "src/adapters/implementations/jwt/jwt.module";
+import { DataValidatorAdapterModule } from "src/adapters/implementations/validator/validator.module";
 
 @Module({
 	controllers: [ClientController],
-	imports: [AccountRepositoryModule, ClientRepositoryModule, BcryptAdapterModule, JwtAdapterModule],
-	providers: [ClientService, AccountService, BcryptAdapterService, JwtAdapterService],
+	imports: [AccountRepositoryModule, ClientRepositoryModule, BcryptAdapterModule, JwtAdapterModule, DataValidatorAdapterModule],
+	providers: [ClientService, AccountService],
 	exports: [ClientService, AccountService],
 })
 export class ClientModule {}

@@ -2,11 +2,15 @@ import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 
 import { BcryptAdapterService } from 'src/adapters/implementations/bcrypt/bcrypt.service';
 import { JwtAdapterService } from 'src/adapters/implementations/jwt/jwt.service';
+import { SignUpDto } from 'src/delivery/dtos/account';
 import { AuthUseCase, LoginInput, LoginOutput } from 'src/models/auth';
 import { AccountRepositoryService } from 'src/repositories/postgres/account/account.service';
 
 @Injectable()
 export class AuthService extends AuthUseCase {
+  create(userData: SignUpDto) {
+    throw new Error('Method not implemented.');
+  }
   constructor(
     @Inject(AccountRepositoryService)
     private readonly accountRepository: AccountRepositoryService,

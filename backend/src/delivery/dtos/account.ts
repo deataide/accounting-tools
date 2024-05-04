@@ -1,25 +1,30 @@
-import { IsEmail, IsNotEmpty, IsString } from "class-validator"
+import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 
 export class SignUpDto {
-    @IsString()
-    @IsNotEmpty()
-    name:string
+  @IsString()
+  @IsNotEmpty()
+  name: string;
 
-    @IsNotEmpty()
-    @IsEmail()
-    email        :string  
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
 
-    @IsNotEmpty()
-    @IsString()
-    password     :string
+  @IsNotEmpty()
+  @IsString()
+  password: string;
 
-    @IsString()
-    @IsNotEmpty()
-    cnpj         :string
+  @IsString()
+  @IsNotEmpty()
+  cnpj: string;
 
-    @IsNotEmpty()
-    @IsString()
-    cpf          :string
+  @IsNotEmpty()
+  @IsString()
+  cpf: string;
 }
 
-//Criar validador para ver se o cpnj é válido.
+export interface UpdateAccountDto {
+  name?: string;
+  email?: string;
+  cnpj?: string;
+  cpf?: string;
+}

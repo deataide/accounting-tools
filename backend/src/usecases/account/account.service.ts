@@ -1,12 +1,17 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { $Enums, User } from '@prisma/client';
+import { RoleEnum, User } from '@prisma/client';
 import { BcryptAdapterService } from 'src/adapters/implementations/bcrypt/bcrypt.service';
+import { DataValidatorAdapterService } from 'src/adapters/implementations/validator/validator.service';
+import {
+  InvalidData,
+  UserAlreadyExistsException,
+} from 'src/exceptions/user.exceptions';
 
 import {
   AccountUseCase,
   CreateAccount,
   CreateAccountOutput,
-  FindAllOutput,
+  GetAllOutput,
   UpdateUserInput,
   UsersToApproveOutput,
 } from 'src/models/account';
@@ -14,28 +19,34 @@ import { AccountRepositoryService } from 'src/repositories/postgres/account/acco
 
 @Injectable()
 export class AccountService extends AccountUseCase {
-
   constructor(
     @Inject(AccountRepositoryService)
     private readonly accountRepository: AccountRepositoryService,
     @Inject(BcryptAdapterService)
     private readonly bcrypt: BcryptAdapterService,
+    @Inject(DataValidatorAdapterService)
+    private readonly validate: DataValidatorAdapterService,
   ) {
     super();
   }
 
-  async findAllNotAproved(): Promise<UsersToApproveOutput[]> {
-    const users = await this.accountRepository.getToApprove()
+  async getById(id: string): Promise<User | null> {
+    const user = await this.accountRepository.getById(id);
 
-    return users
+    return user;
+  }
+
+  async getAllNotAproved(): Promise<UsersToApproveOutput[]> {
+    const users = await this.accountRepository.getGuests();
+    return users;
   }
   async approveUser(id: string): Promise<User | null> {
-   const user = await this.accountRepository.approve(id)
-   return user
+    const user = await this.accountRepository.guestToUser(id);
+    return user;
   }
   async disapproveUser(id: string): Promise<User | null> {
-    const user = await this.accountRepository.disapprove(id)
-    return
+    await this.accountRepository.userToGuest(id);
+    return;
   }
 
   async create(i: CreateAccount): Promise<CreateAccountOutput> {
@@ -46,19 +57,23 @@ export class AccountService extends AccountUseCase {
     });
 
     if (userAlreadyExists) {
-      throw new HttpException(
-        'O e-mail já está sendo utilizado',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new UserAlreadyExistsException();
+    }
+
+    const validatedCnpj = this.validate.validateCnpj(i.cnpj);
+    const validatedCpf = this.validate.validateCpf(i.cpf);
+    const validatedName = this.validate.validateName(i.name);
+
+    if (!validatedCnpj || !validatedCpf || !validatedName) {
+      throw new InvalidData('Nome/CNPJ/CPF inválido');
     }
 
     const userData = {
-      name: i.name,
+      name: validatedName,
       email: i.email,
       password: hashedPassword,
-      cnpj: i.cnpj || null,
-      cpf: i.cpf || null,
-      admin: false,
+      cnpj: validatedCnpj,
+      cpf: validatedCpf,
     };
 
     const newUser = await this.accountRepository.create(userData);
@@ -75,13 +90,16 @@ export class AccountService extends AccountUseCase {
     }
 
     const updatedUser = this.accountRepository.update(i);
+    if (!updatedUser) {
+      throw new InvalidData('O usuário não foi atualizado.');
+    }
     return updatedUser;
   }
 
-  async delete(id:string): Promise<void> {
+  async delete(id: string): Promise<void> {
     this.accountRepository.delete(id);
 
-    const findUser = this.accountRepository.getById({id});
+    const findUser = this.accountRepository.getById(id);
 
     if (!findUser) {
       return;
@@ -90,12 +108,7 @@ export class AccountService extends AccountUseCase {
     }
   }
 
-  async findAllToAprove(): Promise<UsersToApproveOutput[]> {
-    const usersToAprove = await this.accountRepository.getToApprove();
-    return usersToAprove;
-  }
-
-  async findAll(): Promise<FindAllOutput[]> {
+  async getAll(): Promise<GetAllOutput[]> {
     const users = await this.accountRepository.getAll();
     return users;
   }

@@ -11,6 +11,7 @@ import {
 import { AccountRepositoryService } from 'src/repositories/postgres/account/account.service';
 import { ClientRepositoryService } from 'src/repositories/postgres/client/client.service';
 import { Client } from '@prisma/client';
+import { InvalidData } from 'src/exceptions/user.exceptions';
 
 @Injectable()
 export class ClientService extends ClientUseCase {
@@ -33,7 +34,19 @@ export class ClientService extends ClientUseCase {
     return client;
   }
   update(i: UpdateClientInput): Promise<Client | null> {
-    throw new Error('Method not implemented.');
+    if (!i) {
+      throw new HttpException('Parâmetros inválidos', HttpStatus.BAD_REQUEST);
+    }
+    
+    const updatedClient = this.clientRepository.update(i);
+
+  if(!updatedClient){
+    throw new InvalidData('O cliente não foi atualizado.')
+  }
+    return updatedClient;
+
+
+
   }
   async delete(i: UserIdAndClientId): Promise<void> {
     await this.clientRepository.delete(i);
@@ -41,11 +54,6 @@ export class ClientService extends ClientUseCase {
   }
 
   async create(i: CreateClientInput): Promise<Client | null> {
-    const userIdExists = this.accountRepository.getById({ id: i.userId });
-
-    if (!userIdExists) {
-      throw new HttpException('Internal error', HttpStatus.BAD_REQUEST);
-    }
 
     const newClient = await this.clientRepository.create({
       name: i.name,

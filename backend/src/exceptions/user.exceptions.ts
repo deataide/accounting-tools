@@ -12,3 +12,17 @@ export class InvalidCredentialsException extends HttpException {
     super('Credenciais inválidas', HttpStatus.UNAUTHORIZED);
   }
 }
+
+export class UserNotFoundException extends HttpException {
+  constructor() {
+    super('Usuário não encontrado', HttpStatus.NOT_FOUND);
+  }
+}
+
+export class InvalidData extends HttpException {
+  data: string;
+  constructor(data: string) {
+    super(data, HttpStatus.BAD_REQUEST);
+    this.data = data;
+  }
+}
