@@ -17,6 +17,7 @@ import { RolesGuard } from './guards/role.guard';
 import { JwtAuthGuard } from './guards/auth.guard';
 import { Roles } from './decorators/roles.decorator';
 import { UserId } from './decorators/token.decorator';
+import { RoleEnum } from '@prisma/client';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller()
@@ -32,43 +33,43 @@ export class AccountController {
   }
 
   @Get('accounts')
-  @Roles('ADMIN')
+  @Roles(RoleEnum.ADMIN)
   getAll() {
     return this.accountService.getAll();
   }
 
   @Get('accounts/:id')
-  @Roles('USER' || 'ADMIN' || 'MODERATOR')
+  @Roles( RoleEnum.USER, RoleEnum.ADMIN, RoleEnum.MODERATOR)
   getById(@Param('id') userId: string) {
     return this.accountService.getById(userId);
   }
 
   @Patch('accounts/approve/:id')
-  @Roles('ADMIN' || 'MODERATOR')
+  @Roles(RoleEnum.ADMIN, RoleEnum.MODERATOR)
   approveUser(@Param('id') userId: string) {
     return this.accountService.approveUser(userId);
   }
 
   @Patch('accounts/disapprove/:id')
-  @Roles('ADMIN' || 'MODERATOR')
+  @Roles( RoleEnum.ADMIN, RoleEnum.MODERATOR)
   disapproveUser(@Param('id') userId: string) {
     return this.accountService.disapproveUser(userId);
   }
 
   @Get('guests')
-  @Roles('ADMIN' || 'MODERATOR')
+  @Roles( RoleEnum.ADMIN, RoleEnum.MODERATOR)
   getAllNotApproved() {
     return this.accountService.getAllNotAproved();
   }
 
   @Delete('accounts/:id')
-  @Roles('ADMIN' || 'USER')
+  @Roles( RoleEnum.ADMIN, RoleEnum.USER)
   delete(@Param('id') userId: string) {
     return this.accountService.delete(userId);
   }
 
   @Patch('accounts/update')
-  @Roles('ADMIN' || 'ADMIN' || 'MODERATOR')
+  @Roles( RoleEnum.ADMIN,  RoleEnum.MODERATOR)
   update(@UserId() userId: string, @Body() userData: UpdateAccountDto) {
     const userDataWithId = {
       ...userData,

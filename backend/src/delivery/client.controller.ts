@@ -6,13 +6,14 @@ import { JwtAuthGuard } from './guards/auth.guard';
 import { UserId } from './decorators/token.decorator';
 import { RolesGuard } from './guards/role.guard';
 import { Roles } from './decorators/roles.decorator';
+import { RoleEnum } from '@prisma/client';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('/clients')
 export class ClientController {
   constructor(private readonly clientService: ClientService) {}
 
-  @Roles('USER')
+  @Roles(RoleEnum.USER)
   @Post('/create')
   create(@Body() userData: CreateClientDto, @UserId() userId: string) {
     const userDataWithId = {
@@ -22,19 +23,19 @@ export class ClientController {
     return this.clientService.create(userDataWithId);
   }
 
-  @Roles('USER')
+  @Roles(RoleEnum.USER)
   @Get()
   getAll(@UserId() userId: string) {
     return this.clientService.getAll(userId);
   }
 
-  @Roles('USER')
+  @Roles(RoleEnum.USER)
   @Get(':id')
   getById(@UserId() userId: string, @Param('id') clientId: string) {
     return this.clientService.getById({ userId, clientId });
   }
 
-  @Roles('USER')
+  @Roles(RoleEnum.USER)
   @Patch(':id')
   update(
     @UserId() userId: string,
@@ -50,7 +51,7 @@ export class ClientController {
     return this.clientService.update(userDataWithId);
   }
 
-  @Roles('USER')
+  @Roles(RoleEnum.USER)
   @Delete(':id')
   remove(@UserId() userId: string, @Param('id') clientId: string) {
     return this.clientService.delete({ userId, clientId });

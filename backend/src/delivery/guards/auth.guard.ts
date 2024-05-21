@@ -16,9 +16,13 @@ export class JwtAuthGuard implements CanActivate {
       return true;
     }
 
-    const token = request.cookies.access_token;
+    const authHeader = request.headers.authorization;
+    if (!authHeader) {
+      return false;
+    }
 
-    if (!token || !this.jwt.validateAccess(token)) {
+    const [type, token] = authHeader.split(' ');
+    if (type !== 'Bearer' || !token) {
       return false;
     }
 
@@ -28,6 +32,7 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     request.userId = decodedToken.sub;
+
 
     return true;
   }

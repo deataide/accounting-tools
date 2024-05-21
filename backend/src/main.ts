@@ -1,6 +1,5 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import * as cookieParser from 'cookie-parser';
 import { ValidationPipe } from '@nestjs/common';
 import {
   InvalidCredentialsFilter,
@@ -20,7 +19,7 @@ async function bootstrap() {
     credentials: true,
     origin: true,
   });
-  app.use(cookieParser());
+
   await app.listen(process.env.PORT);
 }
 bootstrap();
