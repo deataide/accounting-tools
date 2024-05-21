@@ -1,12 +1,7 @@
 export type SideNavItem = {
     title: string;
     path: string;
-    icon?: JSX.Element;
+    icon?: JSX.Element | string;
     submenu?: boolean;
     subMenuItems?: SideNavItem[];
   };
-
-  export type MenuItemWithMenuProps = {
-    item: SideNavItem
-    toggleOpen: ()=> void;
-  }

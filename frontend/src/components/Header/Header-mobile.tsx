@@ -1,32 +1,54 @@
+'use client';
+
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+
+import { SIDENAV_ITEMS } from './constants';
+import { SideNavItem } from '@/types/sidenavbar';
+
 import { Icon } from '@iconify/react';
 import { motion, useCycle } from 'framer-motion';
-import { MenuItemWithMenuProps } from './types';
 
-const HeaderMobile = ({ items }: any) => {
-  const containerRef = useRef<HTMLDivElement>(null); // Defina o tipo da ref para HTMLDivElement
+type MenuItemWithSubMenuProps = {
+  item: SideNavItem;
+  toggleOpen: () => void;
+};
+
+const sidebar = {
+  open: (height = 1000) => ({
+    clipPath: `circle(${height * 2 + 200}px at 100% 0)`,
+    transition: {
+      type: 'spring',
+      stiffness: 20,
+      restDelta: 2,
+    },
+  }),
+  closed: {
+    clipPath: 'circle(0px at 100% 0)',
+    transition: {
+      type: 'spring',
+      stiffness: 400,
+      damping: 40,
+    },
+  },
+};
+
+const HeaderMobile = () => {
+  const pathname = usePathname();
+  const containerRef = useRef(null);
+  const { height } = useDimensions(containerRef);
   const [isOpen, toggleOpen] = useCycle(false, true);
-
-  useEffect(() => {
-    const handleOutsideClick = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) { // Verifique se containerRef.current não é null
-        toggleOpen();
-      }
-    };
-
-    document.addEventListener('mousedown', handleOutsideClick);
-
-    return () => {
-      document.removeEventListener('mousedown', handleOutsideClick);
-    };
-  }, [toggleOpen]);
 
   return (
     <motion.nav
       initial={false}
       animate={isOpen ? 'open' : 'closed'}
-      custom={containerRef.current ? containerRef.current.offsetHeight : 1000}
-      className={`fixed inset-0 z-50 w-full md:hidden ${isOpen ? '' : 'pointer-events-none'}`}
+      custom={height}
+      className={`fixed inset-0 z-50 w-full md:hidden ${
+        isOpen ? '' : 'pointer-events-none'
+      }`}
       ref={containerRef}
     >
       <motion.div
@@ -37,8 +59,8 @@ const HeaderMobile = ({ items }: any) => {
         variants={variants}
         className="absolute grid w-full gap-3 px-10 py-16 max-h-screen overflow-y-auto"
       >
-        {items.map((item: any, idx: any) => {
-          const isLastItem = idx === items.length - 1;
+        {SIDENAV_ITEMS.map((item, idx) => {
+          const isLastItem = idx === SIDENAV_ITEMS.length - 1; // Check if it's the last item
 
           return (
             <div key={idx}>
@@ -46,13 +68,15 @@ const HeaderMobile = ({ items }: any) => {
                 <MenuItemWithSubMenu item={item} toggleOpen={toggleOpen} />
               ) : (
                 <MenuItem>
-                  <a
+                  <Link
                     href={item.path}
                     onClick={() => toggleOpen()}
-                    className={`flex w-full text-2xl`}
+                    className={`flex w-full text-2xl ${
+                      item.path === pathname ? 'font-bold' : ''
+                    }`}
                   >
                     {item.title}
-                  </a>
+                  </Link>
                 </MenuItem>
               )}
 
@@ -69,7 +93,6 @@ const HeaderMobile = ({ items }: any) => {
 };
 
 export default HeaderMobile;
-
 
 const MenuToggle = ({ toggle }: { toggle: any }) => (
   <button
@@ -125,10 +148,11 @@ const MenuItem = ({
   );
 };
 
-const MenuItemWithSubMenu: React.FC<MenuItemWithMenuProps> = ({
+const MenuItemWithSubMenu: React.FC<MenuItemWithSubMenuProps> = ({
   item,
   toggleOpen,
 }) => {
+  const pathname = usePathname();
   const [subMenuOpen, setSubMenuOpen] = useState(false);
 
   return (
@@ -139,7 +163,9 @@ const MenuItemWithSubMenu: React.FC<MenuItemWithMenuProps> = ({
           onClick={() => setSubMenuOpen(!subMenuOpen)}
         >
           <div className="flex flex-row justify-between w-full items-center">
-            <span>
+            <span
+              className={`${pathname.includes(item.path) ? 'font-bold' : ''}`}
+            >
               {item.title}
             </span>
             <div className={`${subMenuOpen && 'rotate-180'}`}>
@@ -154,13 +180,15 @@ const MenuItemWithSubMenu: React.FC<MenuItemWithMenuProps> = ({
             {item.subMenuItems?.map((subItem, subIdx) => {
               return (
                 <MenuItem key={subIdx}>
-                  <a
+                  <Link
                     href={subItem.path}
                     onClick={() => toggleOpen()}
-                    className={` `}
+                    className={` ${
+                      subItem.path === pathname ? 'font-bold' : ''
+                    }`}
                   >
                     {subItem.title}
-                  </a>
+                  </Link>
                 </MenuItem>
               );
             })}
@@ -198,21 +226,16 @@ const variants = {
   },
 };
 
-const sidebar = {
-  open: (height = 100) => ({
-    clipPath: `circle(${height * 2 + 200}px at 100% 0)`,
-    transition: {
-      type: "spring", 
-      stiffness: 20,
-      restDelta: 2,
-    },
-  }),
-  closed: {
-    clipPath: `circle(0px at 100% 0)`,
-    transition: {
-      type: "spring",
-      stiffness: 400,
-      damping: 40
+const useDimensions = (ref: any) => {
+  const dimensions = useRef({ width: 0, height: 0 });
+
+  useEffect(() => {
+    if (ref.current) {
+      dimensions.current.width = ref.current.offsetWidth;
+      dimensions.current.height = ref.current.offsetHeight;
     }
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ref]);
+
+  return dimensions.current;
 };
